@@ -3,6 +3,7 @@ import unittest
 from functions.get_files_info import get_files_info
 from functions.get_files_content import get_file_content
 from functions.write_file import write_file
+from functions.run_python import run_python_file
 
 # class Test_get_files_info(unittest.TestCase):
 #     # Test 1: Run get_files_info("calculator", ".")
@@ -84,51 +85,99 @@ from functions.write_file import write_file
     #     print("Test 3: get_file_content('calculator', '/bin/cat')")
     #     print(result)
 
-class Test_write_file(unittest.TestCase):
-    # Test 1: Valid file within the working directory
-    def test_valid_file_write(self):
-        working_dir = os.path.abspath("calculator")
-        test_file_path = os.path.join(working_dir, "lorem.txt")
-        content = "wait, this isn't lorem ipsum"
+# class Test_write_file(unittest.TestCase):
+#     # Test 1: Valid file within the working directory
+#     def test_valid_file_write(self):
+#         working_dir = os.path.abspath("calculator")
+#         test_file_path = os.path.join(working_dir, "lorem.txt")
+#         content = "wait, this isn't lorem ipsum"
 
-        os.makedirs(working_dir, exist_ok=True)
-        result = write_file(working_dir, test_file_path, content)
-        self.assertEqual(result, f'Successfully wrote to "{test_file_path}" ({len(content)} characters written)')
+#         os.makedirs(working_dir, exist_ok=True)
+#         result = write_file(working_dir, test_file_path, content)
+#         self.assertEqual(result, f'Successfully wrote to "{test_file_path}" ({len(content)} characters written)')
         
-        with open(test_file_path, "r") as file:
-            self.assertEqual(file.read(), content)
+#         with open(test_file_path, "r") as file:
+#             self.assertEqual(file.read(), content)
 
-        print("Test 1: write_file('calculator', 'lorem.txt')")
+#         print("Test 1: write_file('calculator', 'lorem.txt')")
+#         print(result)
+
+#     # Test 2: Valid file in a subdirectory
+#     def test_valid_file_subdirectory(self):
+#         working_dir = os.path.abspath("calculator")
+#         sub_dir = os.path.join(working_dir, "pkg")
+#         test_file_path = os.path.join(sub_dir, "morelorem.txt")
+#         content = "lorem ipsum dolor sit amet"
+
+#         result = write_file(working_dir, test_file_path, content)
+#         self.assertEqual(result, f'Successfully wrote to "{test_file_path}" ({len(content)} characters written)')
+        
+#         with open(test_file_path, "r") as file:
+#             self.assertEqual(file.read(), content)
+
+#         print("Test 2: write_file_subdir('calculator', 'morelorem.txt')")
+#         print(result)
+
+#     # Test 3: File outside working directory
+#     def test_file_outside_working_directory(self):
+#         working_dir = os.path.abspath("calculator")
+#         content = "this should not be allowed"
+
+#         result = write_file(working_dir, "/tmp/temp.txt", content)
+#         self.assertTrue(result.startswith("Error:"))
+#         self.assertIn(f'Cannot write to "{os.path.abspath("/tmp/temp.txt")}"', result)
+        
+#         print("Test 3: write_file('calculator', 'temp.txt')")
+#         print(result)
+
+class TestRunPythonFile(unittest.TestCase):
+    def test_run_valid_main_py(self):
+        # Test 1: Run a valid Python file (main.py)
+        working_dir = os.path.abspath("calculator")
+        test_file_path = os.path.join(working_dir, "main.py")
+
+        # Run the Python file
+        result = run_python_file(working_dir, test_file_path)
+        print("Test 1: run_python_file('calculator', 'main.py')")
         print(result)
 
-    # Test 2: Valid file in a subdirectory
-    def test_valid_file_subdirectory(self):
+    def test_run_valid_tests_py(self):
+        # Test 2: Run a valid Python file (tests.py)
         working_dir = os.path.abspath("calculator")
-        sub_dir = os.path.join(working_dir, "pkg")
-        test_file_path = os.path.join(sub_dir, "morelorem.txt")
-        content = "lorem ipsum dolor sit amet"
+        test_file_path = os.path.join(working_dir, "tests.py")
 
-        result = write_file(working_dir, test_file_path, content)
-        self.assertEqual(result, f'Successfully wrote to "{test_file_path}" ({len(content)} characters written)')
-        
-        with open(test_file_path, "r") as file:
-            self.assertEqual(file.read(), content)
-
-        print("Test 2: write_file_subdir('calculator', 'morelorem.txt')")
+        # Run the Python file
+        result = run_python_file(working_dir, test_file_path)
+        print("Test 2: run_python_file('calculator', 'tests.py')")
         print(result)
 
-    # Test 3: File outside working directory
-    def test_file_outside_working_directory(self):
+    def test_run_file_outside_working_directory(self):
+        # Test 3: Run a file outside the working directory (../main.py)
         working_dir = os.path.abspath("calculator")
-        content = "this should not be allowed"
+        file_path = "../main.py"
 
-        result = write_file(working_dir, "/tmp/temp.txt", content)
+        # Run the Python file
+        result = run_python_file(working_dir, file_path)
+        print("Test 3: run_python_file('calculator', '../main.py')")
+        print(result)
+
+        # Verify the error message
         self.assertTrue(result.startswith("Error:"))
-        self.assertIn(f'Cannot write to "{os.path.abspath("/tmp/temp.txt")}"', result)
-        
-        print("Test 3: write_file('calculator', 'temp.txt')")
+        self.assertIn(f'Cannot execute "{file_path}" as it is outside the permitted working directory', result)
+
+    def test_run_nonexistent_file(self):
+        # Test 4: Run a nonexistent Python file (nonexistent.py)
+        working_dir = os.path.abspath("calculator")
+        file_path = "nonexistent.py"
+
+        # Run the Python file
+        result = run_python_file(working_dir, file_path)
+        print("Test 4: run_python_file('calculator', 'nonexistent.py')")
         print(result)
 
+        # Verify the error message
+        self.assertTrue(result.startswith("Error:"))
+        self.assertIn(f'"{file_path}" not found.', result)
 
 if __name__ == "__main__":
     unittest.main()
