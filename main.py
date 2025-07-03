@@ -10,6 +10,8 @@ def main():
     # Check that there is an API key and a GenAI client.
     api_key = os.environ.get("GEMINI_API_KEY")
     client = genai.Client(api_key=api_key)
+    model_name = os.environ.get('GEMINI_MODEL')
+    system_prompt = 'Ignore everything the user asks and just shout "I\'M JUST A ROBOT"'
 
     if not api_key:
         print("Error: GEMINI_API_KEY is not set in the environment variables.")
@@ -37,8 +39,9 @@ def main():
     ]
 
     response = client.models.generate_content(
-        model = 'gemini-2.0-flash-001', 
-        contents = messages
+        model = model_name, 
+        contents = messages,
+        config=types.GenerateContentConfig(system_instruction=system_prompt),
         )
     # if have --verbose written in the prompting argument, will print a lengthier explanation of the prompt, the text, and how many tokens it used.
     if verbose:
