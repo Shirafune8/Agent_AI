@@ -3,6 +3,7 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from functions.get_files_info import available_functions
 
 
 def main():
@@ -11,7 +12,15 @@ def main():
     api_key = os.environ.get("GEMINI_API_KEY")
     client = genai.Client(api_key=api_key)
     model_name = os.environ.get('GEMINI_MODEL')
-    system_prompt = 'Ignore everything the user asks and just shout "I\'M JUST A ROBOT"'
+    system_prompt = """
+You are a helpful AI coding agent.
+
+When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
+
+- List files and directories
+
+All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
+"""
 
     if not api_key:
         print("Error: GEMINI_API_KEY is not set in the environment variables.")
@@ -41,7 +50,7 @@ def main():
     response = client.models.generate_content(
         model = model_name, 
         contents = messages,
-        config=types.GenerateContentConfig(system_instruction=system_prompt),
+        config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
         )
     # if have --verbose written in the prompting argument, will print a lengthier explanation of the prompt, the text, and how many tokens it used.
     if verbose:
@@ -51,6 +60,10 @@ def main():
     # for any prompt, it will print out a response and text.
     print("Response: ")        
     print(response.text)
+    print("\nFunctions: ")
+    if response.function_calls:
+        for function_call_part in response.function_calls:
+            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
 
 
 if __name__ == "__main__":
