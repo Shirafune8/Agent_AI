@@ -52,6 +52,15 @@ All paths you provide should be relative to the working directory. You do not ne
         contents = messages,
         config=types.GenerateContentConfig(tools=[available_functions], system_instruction=system_prompt)
         )
+
+    # Verify that usage_metadata is not None
+    if response.usage_metadata is None:
+        raise RuntimeError("Failed to retrieve usage metadata from the Gemini API response.")
+
+    # Print the number of tokens consumed
+    print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
     # if have --verbose written in the prompting argument, will print a lengthier explanation of the prompt, the text, and how many tokens it used.
     if verbose:
         print(f"User prompt: {user_prompt}")
