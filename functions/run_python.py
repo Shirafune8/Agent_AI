@@ -1,7 +1,9 @@
 import os
+from google.genai import types
 import subprocess
+import sys
 
-def run_python_file(working_directory, file_path):
+def run_python_file(working_directory, file_path, args=None):
     # Get absolute paths
     abs_working_dir = os.path.abspath(working_directory)
     abs_file_path = os.path.abspath(os.path.join(working_directory, file_path))
@@ -14,22 +16,20 @@ def run_python_file(working_directory, file_path):
     if not os.path.exists(abs_file_path):
         return f'Error: File "{file_path}" not found.'
 
-    # Check if file exists and is python file.
-    if not os.path.isfile(abs_file_path) and file_path.lower().endswith(".py"):
-        return f'Error: "{file_path}" is not a Python file.'
+    # Ensure it's a regular file
+    if not os.path.isfile(abs_file_path):
+        return f'Error: "{file_path}" is not a regular file.'
 
     # Execute the python file.
     try:
+        cmd = [sys.executable, abs_file_path] + (args or [])
         result = subprocess.run(
-            ["python", os.path.basename(abs_file_path)],
+            cmd,
             capture_output=True,
             text=True,
             timeout=30,
             cwd=abs_working_dir
         )
-
-        if result.returncode != 0:
-            return f"Process exited with code {result.returncode}"
 
         output_lines = []
 
@@ -46,3 +46,26 @@ def run_python_file(working_directory, file_path):
             return "No output produced."
     except Exception as e:
         return f"Error: executing Python file: {e}"
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Executes a Python file in the working directory with optional arguments and returns stdout, stderr, and exit code.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="Path to the Python file to execute, relative to the working directory.",
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(
+                    type=types.Type.STRING,
+                    description="An argument to pass to the script.",
+                ),
+                description="Optional list of string arguments to pass to the script.",
+            ),
+        },
+        required=["file_path"],
+    ),
+)
